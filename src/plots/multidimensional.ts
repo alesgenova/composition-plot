@@ -7,10 +7,30 @@ import { hexTorgb } from '../utils/colors';
 import { ISample, Vec2 } from '../types';
 declare const vtk: any;
 
+/**
+ * Creates a new vtkCamera object
+ * 
+ * @returns A new instance of a vtkCamera
+ * 
+ * @public
+ * 
+ */
 function makeCamera() {
   return vtk.Rendering.Core.vtkCamera.newInstance();
 }
 
+/**
+ * Class that creates a multidimensional composition plot (2,3,4,5,6,7,8-dimensional) in 3D
+ * 
+ * The position of the samples is affected as follows:
+ * - 2-d: Line
+ * - 3-d: Triangle
+ * - 4-d: Tetrahedron
+ * - 5,6,7,8-d: Predefined tabulated positions
+ * 
+ * @public
+ *  
+ */
 class MultidimensionalPlot {
   div: HTMLElement;
   dp: DataProvider;
@@ -32,6 +52,13 @@ class MultidimensionalPlot {
   labelWidgets = [];
   radiusFn: (sample: ISample) => number = () => 1.5;
 
+  /**
+   * The constructor of MultidimensionalPlot
+   * 
+   * @param div - The container that will include all graphical elements
+   * @param dp - The DataProvider with the samples and figures of merit
+   * @param compositionToPosition - The object in charge of determining the position of the samples in 3D
+   */
   constructor(
     div: HTMLElement, dp: DataProvider, compositionToPosition: ICompositionToPositionProvider
   ) {
@@ -74,12 +101,26 @@ class MultidimensionalPlot {
     this.resize();
   }
 
+  /**
+   * Resize the 3D canvas to span the container size
+   * 
+   * @public
+   * 
+   */
   resize() {
     const {width, height} = this.div.getBoundingClientRect();
     this.viewer.getOpenGLRenderWindow().setSize(width, height);
     this.renderWindow.render();
   }
 
+  /**
+   * Set the background color of the 3D canvas
+   * 
+   * @param color - The background color
+   * 
+   * @public
+   * 
+   */
   setBackground(color: RGBColor | string) {
     if (Array.isArray(color)) {
       this.viewer.setBackground(...color);
@@ -89,11 +130,30 @@ class MultidimensionalPlot {
     this.renderWindow.render();
   }
 
+  /**
+   * Set the function that determines the radius of each sample
+   * 
+   * @param radiusFn 
+   * 
+   * @public
+   */
   setRadiusFn(radiusFn: (sample: ISample) => number) {
     this.radiusFn = radiusFn;
     this.updateSizesArray();
   }
 
+  /**
+   * Set a specific vtkCamera object to be used
+   * 
+   * This is useful if there are multiple composition plots that need to have their camera sychronized
+   * 
+   * @param camera - The vtkCamera object to be used (can be shared) 
+   * @param resetCamera - Reset the camera zoom to include the whole scene
+   * @param watchModified - Whether to re-render each time the camera object is modified 
+   * 
+   * @public
+   * 
+   */
   setCamera(camera, resetCamera = false, watchModified = false) {
     this.renderer.setActiveCamera(camera);
 
@@ -110,18 +170,51 @@ class MultidimensionalPlot {
     this.renderWindow.render();
   }
 
+  /**
+   * Set the composition space of this plot
+   * 
+   * The composition space is the list of elements that
+   * a sample can be expected to have in its composition
+   * 
+   * @param compositionSpace - A list of chemical elements
+   * 
+   * @public
+   * 
+   */
   setCompositionSpace(compositionSpace: string[]) {
     this.compositionSpace = compositionSpace;
   }
 
+  /**
+   * Change the way samples are mapped to the 3D space based on their composition
+   * 
+   * @param compositionToPosition - The object in charge of determining the position of the samples in 3D
+   * 
+   * @public
+   * 
+   */
   setCompositionToPosition(compositionToPosition: ICompositionToPositionProvider) {
     this.compositionToPosition = compositionToPosition;
   }
 
+  /**
+   * Get the vtkCamera object of this composition plot
+   * 
+   * @returns a vtkCamera object
+   * 
+   * @public
+   * 
+   */
   getCamera() {
     return this.renderer.getActiveCamera();
   }
 
+  /**
+   * The data in the DataProvider have changed, redraw the entire plot
+   * 
+   * @public
+   * 
+   */
   dataUpdated() {
     let filter: (sample: ISample) => boolean;
     if (this.compositionSpace) {
@@ -186,6 +279,9 @@ class MultidimensionalPlot {
     this.renderWindow.render();
   }
 
+  /**
+   * Rerender after the sample radius function has been modified
+   */
   updateSizesArray() {
     const samples = this.dp.getSamples();
     const nSamples = samples.length;
@@ -272,12 +368,24 @@ class MultidimensionalPlot {
     this.linesPolyData.getLines().setData(new Uint32Array(0));
   }
 
+  /**
+   * Rerender after the active figure of merit has changed
+   */
   activeScalarsUpdated() {
     this.polyData.getPointData().setActiveScalars(this.dp.getActiveScalar());
     this.polyData.modified();
     this.renderWindow.render();
   }
 
+  /**
+   * Set the colormap used to color samples based on a figure of merit
+   * 
+   * @param map - The array of colors representing the map
+   * @param range - The range of the map
+   * 
+   * @public
+   * 
+   */
   setColorMap(map: RGBColor[], range: Vec2) {
     this.lut.removeAllPoints();
     this.range = range;
@@ -299,6 +407,14 @@ class MultidimensionalPlot {
     this.renderWindow.render();
   }
 
+  /**
+   * Invert the direction of the colormap
+   * 
+   * @param inverted - Whether to invert
+   * 
+   * @public
+   * 
+   */
   setInverted(inverted: boolean) {
     this.inverted = inverted;
     this.setColorMap(this.colors, this.range);

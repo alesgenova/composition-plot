@@ -1,3 +1,8 @@
+
+/**
+ * @packageDocumentation Framework agnostic library to create quaternary composition plots.
+ */
+
 export { TernaryPlot } from './plots/ternary';
 export { QuaternaryPlot } from './plots/quaternary';
 export { Spectrum } from './plots/spectrum';
@@ -21,7 +26,32 @@ export {
   QuaternaryShellPlot, SampleShape
 } from './plots/common';
 export { PeriodicTable, Element, TableLayout } from './plots/periodic-table';
-import * as colors from './utils/colors';
-import * as spline from './utils/spline';
-export { colors, spline };
+
+import {
+  presets,
+  getLineColor,
+  rgbToHex,
+  hexTorgb,
+  rgbToString,
+} from './utils/colors';
+
+import {
+  splineEval,
+} from './utils/spline';
+
+const colors = {
+  presets,
+  getLineColor,
+  rgbToHex,
+  hexTorgb,
+  rgbToString,
+}
+
+export { colors };
+
+const spline = {
+  splineEval
+};
+
+export { spline };
 export { samplesToLines, downloadLinesAsCSV } from './utils/csv';

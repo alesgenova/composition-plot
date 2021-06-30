@@ -7,6 +7,12 @@ import { ISample, Vec2, IAxis } from '../types';
 import { DataProvider } from '../data-provider';
 import { rgbToString } from '../utils/colors';
 
+/**
+ * Composition plot type enum.
+ * 
+ * @public
+ * 
+ */
 export enum PlotTypes {
   Unary,
   BinaryHorizontal,
@@ -15,21 +21,57 @@ export enum PlotTypes {
   TernaryDown
 }
 
+/**
+ * Sample shape enum.
+ * 
+ * @public
+ * 
+ */
 export enum SampleShape {
   Hexagon,
   Square,
   Circle
 }
 
+/**
+ * Struct representing a vertex on a composition plot.
+ * 
+ * @public
+ * 
+ */
 export interface IVertex {
   position: Vec2;
   labelPosition?: Vec2;
 }
 
+/**
+ * Type describing a function that returns vertices
+ * 
+ * @public
+ * 
+ */
 export type VerticesFn = () => IVertex[];
 
+/**
+ * Type describing a function that returns the position of a given sample
+ * 
+ * @public
+ * 
+ */
 export type SamplePositionFn = (sample: ISample) => Vec2
 
+/**
+ * Helper function that returns a {@link VerticesFn} for a set of predefined plot layouts.
+ * 
+ * @param plotType - The layout of the composition plot
+ * @param origin - The origin of the plot
+ * @param size - The length of the plot edge
+ * @param fontSize - The size of the vertex labels
+ * @returns A VerticesFn
+ * 
+ * @public
+ * 
+ */
 export function verticesFnFactory(plotType: PlotTypes, origin: Vec2, size: number, fontSize: number) : VerticesFn {
   switch (plotType) {
     case PlotTypes.Unary : {
@@ -107,6 +149,19 @@ export function verticesFnFactory(plotType: PlotTypes, origin: Vec2, size: numbe
   }
 }
 
+/**
+ * Helper function that returns a {@link SamplePositionFn} for a set of predefined plot layouts.
+ * 
+ * @param plotType - The layout of the composition plot
+ * @param verticesFn - The VerticesFn of the plot
+ * @param scales - The scaling function mapping composition fraction to edge fraction
+ * @param edge - The size of the plot edge
+ * @param dp - The DataProvider of the plot
+ * @returns A SamplePositionFn
+ * 
+ * @public
+ *  
+ */
 export function samplePositionFnFactory(plotType: PlotTypes, verticesFn: VerticesFn, scales: Scale[], edge: number, dp: DataProvider) : SamplePositionFn {
   const vertices = verticesFn();
   switch (plotType) {
@@ -165,6 +220,20 @@ export function samplePositionFnFactory(plotType: PlotTypes, verticesFn: Vertice
   }
 }
 
+/**
+ * A class in charge of drawing a composition plot into an SVG element.
+ * 
+ * This class is fairly general, and relies on the following in order to
+ * customize the layout and appearance of the plot:
+ *   - a color function
+ *   - an opacity function
+ *   - a vertices function
+ *   - a sample position function
+ *   - etc.
+ * 
+ * @public
+ * 
+ */
 class BasePlot {
 
   id: string;
@@ -197,6 +266,16 @@ class BasePlot {
 
   mouseDown: boolean = false;
 
+  /**
+   * The constructor of the BasePlot
+   * 
+   * @param svg - The SVG element that will be used for rendering
+   * @param dp  - The DataProvider containing samples and figures of merit
+   * @param id - An arbitrary unique ID
+   * 
+   * @public
+   * 
+   */
   constructor(svg: HTMLElement, dp: DataProvider, id: string ) {
     this.id = id;
     this.svg = svg;
@@ -250,39 +329,106 @@ class BasePlot {
     this.svg.addEventListener('dragstart', (e) => {e.preventDefault()});
   }
 
+  /**
+   * Set the color function
+   * 
+   * @param fn - Returns a fill color for a given sample
+   * 
+   * @public
+   * 
+   */
   setColorFn(fn: (sample: ISample, dp: DataProvider) => RGBColor) {
     this.colorFn = fn;
   }
 
+  /**
+   * Set the opacity function
+   * 
+   * @param fn - Returns a fill opacity for a given sample
+   * 
+   * @public
+   * 
+   */
   setOpacityFn(fn: (sample: ISample, dp: DataProvider) => number) {
     this.opacityFn = fn;
   }
 
+  /**
+   * Set the border color function
+   * 
+   * @param fn - Returns a border color for a given sample
+   * 
+   * @public
+   * 
+   */
   setBorderColorFn(fn: (sample: ISample, dp: DataProvider) => RGBColor) {
     this.borderColorFn = fn;
   }
 
+  /**
+   * Set the border width function
+   * 
+   * @param fn - Returns a border width for a given sample
+   * 
+   * @public
+   * 
+   */
   setBorderWidthFn(fn: (sample: ISample, dp: DataProvider) => number) {
     this.borderWidthFn = fn;
   }
 
+  /**
+   * Set the label color function
+   * 
+   * @param fn - Returns a label color for a given vertex
+   * 
+   * @public
+   * 
+   */
   setLabelColorFn(fn: (element: string) => RGBColor) {
     this.labelColorFn = fn;
   }
 
+  /**
+   * Set the composition space of this plot
+   * 
+   * The composition space is the list of elements that
+   * a sample can be expected to have in its composition
+   * 
+   * @param compositionSpace - A list of chemical elements
+   * 
+   * @public
+   * 
+   */
   setCompositionSpace(compositionSpace: string[]) {
     this.compositionSpace = compositionSpace;
   }
 
+  /**
+   * Remove all the graphical elements associated with this plot from the SVG element
+   * 
+   * @public
+   * 
+   */
   release() {
     select(this.svg).selectAll(`.${this.id}`).remove();
   }
 
+  /**
+   * Redraw all the graphical elements in the SVG
+   * 
+   * @public
+   * 
+   */
   render() {
     this.drawGrid();
     this.drawData();
   }
 
+  /**
+   * Draw the graphical elements associated to the plot grid
+   * 
+   */
   drawGrid() {
     const vertices = this.verticesFn();
 
@@ -386,6 +532,10 @@ class BasePlot {
       .remove()
   }
 
+  /**
+   * Draw the graphical elements associated to the samples and figures of merit
+   * 
+   */
   drawData() {
     let filter: (sample: ISample) => boolean;
     if (this.compositionSpace) {
@@ -510,21 +660,54 @@ class BasePlot {
       .remove();
   }
 
+  /**
+   * Set a callback function that will be invoked when a sample is clicked
+   * 
+   * @param fn - A callback function to be invoken upon selection of a sample 
+   * 
+   * @public
+   * 
+   */
   setSelectCallback(fn: (sample: ISample) => void) {
     this.onSelect = fn;
   }
 
+  /**
+   * Set the radius of a sample circle/hexagon/square
+   * 
+   * @param radius - The sample radius
+   * 
+   * @public
+   * 
+   */
   setSampleRadius(radius: number) {
     this.sampleRadius = radius;
   }
 
+  /**
+   * Set the shape that will be used to draw samples
+   * 
+   * @param shape - The shape of the sample (circle, hex, ...) 
+   * 
+   * @public
+   * 
+   */
   setSampleShape(shape: SampleShape) {
     this.sampleShape = shape;
   }
 
+  /**
+   * Enable/disable the tooltip that is displayed when hovering a sample
+   * 
+   * @param enable
+   * 
+   * @public
+   * 
+   */
   setEnableTooltip(enable: boolean) {
     this.enableTooltip = enable;
   }
+
 
   _polygonFn = (nPoints: number, phase: number = 0) => {
     return (sample: ISample) : [number, number][] => {
@@ -548,6 +731,18 @@ class BasePlot {
   }
 }
 
+/**
+ * A class in charge of drawing a quaternary composition plot into an SVG element.
+ * 
+ * This class relies on multiple instances of the {@link BasePlot} class
+ * to perform the actual drawing.
+ * For each shell in the quaternary plot, 4 BasePlots will be created.
+ * The QuaternaryShellPlot will be in charge of placing the plots appropriately on the
+ * same SVG element, as well as broadcasting events to/from each plot.
+ * 
+ * @public
+ * 
+ */
 class QuaternaryShellPlot {
   id: string;
   svg: HTMLElement;
@@ -573,12 +768,36 @@ class QuaternaryShellPlot {
 
   onSelect: (sample: ISample) => void = () => {};
 
+  /**
+   * The constructor of the QuaternaryShellPlot
+   * 
+   * @param svg - The SVG element that will be used for rendering
+   * @param dp  - The DataProvider containing samples and figures of merit
+   * @param id - An arbitrary unique ID
+   * 
+   * @public
+   * 
+   */
   constructor(svg: HTMLElement, dp: DataProvider, id: string ) {
     this.id = id;
     this.svg = svg;
     this.dp = dp;
   }
 
+  /**
+   * Initialize the placement of the quaternary plot
+   * 
+   * @param initialShell - The initial shell number that needs to be plotted 
+   * @param finalShell  - The final shell number that needs to be plotted
+   * @param spacing - The composition fraction between shells
+   * @param edgeUnit - The legth of an edge spanning from 0 to 1 composition fraction
+   * @param origin - The origin of the plot
+   * @param maxWidth - The maximum width the plot can have before new shells are placed on a new row
+   * @param margin - The margin between shells
+   * 
+   * @public
+   * 
+   */
   setPlacement(
     initialShell: number, finalShell: number, spacing: number, edgeUnit: number,
     origin: Vec2 = [50, 0], maxWidth: number = 1200, margin: number = 50
@@ -592,6 +811,14 @@ class QuaternaryShellPlot {
       this.margin = margin;
   }
 
+  /**
+   * Allocates and places the various BasePlots.
+   * 
+   * @returns the estimated size of the total quaternary plot
+   * 
+   * @public
+   * 
+   */
   initialize() : Vec2 {
     this.release();
 
@@ -677,6 +904,14 @@ class QuaternaryShellPlot {
     return [sizeX, sizeY];
   }
 
+  /**
+   * Set a callback function that will be invoked when a sample is clicked
+   * 
+   * @param fn - A callback function to be invoken upon selection of a sample 
+   * 
+   * @public
+   * 
+   */
   setSelectCallback(fn: (sample: ISample) => void) {
     this.onSelect = fn;
     this.broadCast(plot => {
@@ -684,6 +919,14 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Set the color function
+   * 
+   * @param fn - Returns a fill color for a given sample
+   * 
+   * @public
+   * 
+   */
   setColorFn(fn: (sample: ISample, dp: DataProvider) => RGBColor) {
     this.colorFn = fn;
     this.broadCast(plot => {
@@ -691,6 +934,14 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Set the opacity function
+   * 
+   * @param fn - Returns a fill opacity for a given sample
+   * 
+   * @public
+   * 
+   */
   setOpacityFn(fn: (sample: ISample, dp: DataProvider) => number) {
     this.opacityFn = fn;
     this.broadCast(plot => {
@@ -698,6 +949,14 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Set the border color function
+   * 
+   * @param fn - Returns a border color for a given sample
+   * 
+   * @public
+   * 
+   */
   setBorderColorFn(fn: (sample: ISample, dp: DataProvider) => RGBColor) {
     this.borderColorFn = fn;
     this.broadCast(plot => {
@@ -705,6 +964,14 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Set the border width function
+   * 
+   * @param fn - Returns a border width for a given sample
+   * 
+   * @public
+   * 
+   */
   setBorderWidthFn(fn: (sample: ISample, dp: DataProvider) => number) {
     this.borderWidthFn = fn;
     this.broadCast(plot => {
@@ -712,6 +979,14 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Set the label color function
+   * 
+   * @param fn - Returns a label color for a given vertex
+   * 
+   * @public
+   * 
+   */
   setLabelColorFn(fn: (element: string) => RGBColor) {
     this.labelColorFn = fn;
     this.broadCast(plot => {
@@ -719,12 +994,23 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Enable/disable the tooltip that is displayed when hovering a sample
+   * 
+   * @param enable
+   * 
+   * @public
+   * 
+   */
   setEnableTooltip(enable: boolean) {
     this.broadCast(plot => {
       plot.setEnableTooltip(enable);
     });
   }
 
+  /**
+   * Private method
+   */
   setShellsData() {
     const nShells = Math.floor(this.plots.length / 4);
     for (let i = 0; i < nShells; ++i) {
@@ -733,12 +1019,24 @@ class QuaternaryShellPlot {
     }
   }
 
+  /**
+   * Remove all the graphical elements associated with this plot from the SVG element
+   * 
+   * @public
+   * 
+   */
   release() {
     this.broadCast((plot) => {
       plot.release();
     });
   }
 
+  /**
+   * Redraw all the graphical elements in the SVG
+   * 
+   * @public
+   * 
+   */
   render() {
     const fn = (plot: BasePlot) => {
       plot.render();
@@ -746,12 +1044,26 @@ class QuaternaryShellPlot {
     this.broadCast(fn);
   }
 
+  /**
+   * The data in the DataProvider have changed, redraw the entire plot
+   * 
+   * @public
+   * 
+   */
   dataUpdated() {
     this.initialize();
     this.setShellsData();
     this.render();
   }
 
+  /**
+   * Set the radius of a sample circle/hexagon/square
+   * 
+   * @param radius - The sample radius
+   * 
+   * @public
+   * 
+   */
   setSampleRadius(radius: number) {
     this.sampleRadius = radius;
     this.broadCast(plot => {
@@ -760,6 +1072,14 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Set the shape that will be used to draw samples
+   * 
+   * @param shape - The shape of the sample (circle, hex, ...) 
+   * 
+   * @public
+   * 
+   */
   setSampleShape(shape: SampleShape) {
     this.sampleShape = shape;
     this.broadCast(plot => {
@@ -768,6 +1088,12 @@ class QuaternaryShellPlot {
     });
   }
 
+  /**
+   * Private method
+   * 
+   * @param plots 
+   * @param constValue
+   */
   _setShellData(plots: BasePlot[], constValue: number) {
     const alreadyIncluded = new Set();
     const axes = this.dp.getAxes();
@@ -825,6 +1151,10 @@ class QuaternaryShellPlot {
     }
   }
 
+  /**
+   * Broadcast a function call on each BasePlot held by this Quaternary plot
+   * @param fn - The function that will be invoked for each plot
+   */
   broadCast(fn: (plot: BasePlot) => void) {
     this.plots.forEach(plot => {
       fn(plot);

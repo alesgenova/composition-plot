@@ -9,8 +9,12 @@
     "dist/"
   ],
   "scripts": {
-    "build": "tsc ",
+    "build": "npm run build:src && npm run build:types",
+    "build:src": "tsc",
+    "build:types": "tsc --emitDeclarationOnly",
     "watch": "tsc -w",
+    "build:docs": "npm run build:types && api-extractor run --local --verbose && api-documenter markdown -i=docs/input -o=docs/output",
+    "deploy:docs": "npm run build:docs && gh-pages -d docs/output",
     "prepare": "npm run build"
   },
   "dependencies": {
@@ -27,6 +31,8 @@
     "vtk.js": "^13.11.0"
   },
   "devDependencies": {
+    "@microsoft/api-documenter": "^7.13.23",
+    "@microsoft/api-extractor": "^7.16.1",
     "@openchemistry/types": "^0.8.4",
     "@types/d3-array": "^1.2.1",
     "@types/d3-axis": "^1.0.10",

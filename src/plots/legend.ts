@@ -33,10 +33,26 @@ export class BaseLegend {
     this.container.appendChild(this.wrapper);
   }
 
+  /**
+   * Set the colors that will be displayed by the legend
+   * 
+   * @param colors - The colors
+   * 
+   * @public
+   * 
+   */
   setColors(colors: Vec3[]) {
     this.colors = [...colors];
   }
 
+  /**
+   * Set the orientation of the legend bar (horizontal/vertical)
+   * 
+   * @param direction - The direction
+   * 
+   * @public
+   * 
+   */
   setDirection(direction: 'horizontal' | 'vertical') {
     this.direction = direction;
     if (direction === 'horizontal') {
@@ -65,16 +81,37 @@ export class BaseLegend {
     }
   }
 
+  /**
+   * Set the global opacity of the legend bar
+   * 
+   * @param opacity - The global opacity
+   * 
+   * @public
+   * 
+   */
   setOpacity(opacity: number) {
     this.opacity = opacity;
   }
 }
 
+/**
+ * Concrete class that draws a legend bar for a colormap a continuous range
+ * 
+ * @public
+ * 
+ */
 export class ColorMapLegend extends BaseLegend {
   range: Vec2;
   digits: number;
   inverted: boolean;
 
+  /**
+   * The ColorMapLegend constructor
+   * 
+   * @param container - The div element that will be used as parent for the graphical elements
+   * 
+   * @public
+   */
   constructor(container: HTMLDivElement) {
     super(container);
     this.range = [0, 1];
@@ -84,18 +121,44 @@ export class ColorMapLegend extends BaseLegend {
     this.draw();
   }
 
+  /**
+   * Set the numerical range
+   * 
+   * @param range - The range spanned by the legend
+   * 
+   * @public
+   */
   setRange(range: Vec2) {
     this.range = [range[0], range[1]];
   }
 
+  /**
+   * Set the number of decimal digits used in the tick labels
+   * 
+   * @param digits - The range number of decimal digits
+   * 
+   * @public
+   */
   setDigits(digits: number) {
     this.digits = digits;
   }
 
+  /**
+   * Set wheter the direction of the legend should be MAX -> MIN
+   * 
+   * @param inverted - Invert the legend direction
+   * 
+   * @public
+   */
   setInverted(inverted: boolean) {
     this.inverted = inverted;
   }
 
+  /**
+   * Re-draw the graphical elements
+   * 
+   * @public
+   */
   draw() {
     this.drawMap();
     this.drawTicks();
@@ -172,9 +235,19 @@ export class ColorMapLegend extends BaseLegend {
   }
 }
 
+/**
+ * Concrete class that draws a legend for a discrete set of categories
+ */
 export class CategoryLegend extends BaseLegend {
   labels: string[];
 
+  /**
+   * The CategoryLegend constructor
+   * 
+   * @param container - The div element that will be used as parent for the graphical elements
+   * 
+   * @public
+   */
   constructor(container: HTMLDivElement) {
     super(container);
     this.nPoints = 128;
@@ -185,10 +258,22 @@ export class CategoryLegend extends BaseLegend {
     this.draw();
   }
 
+  /**
+   * Set the category labels
+   * 
+   * @param labels - The names of the categories
+   * 
+   * @public 
+   */
   setLabels(labels: string[]) {
     this.labels = [...labels];
   }
 
+  /**
+   * Re-draw the graphical elements
+   * 
+   * @public
+   */
   draw() {
     this.drawMap();
     this.drawTicks();

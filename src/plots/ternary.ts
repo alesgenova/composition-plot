@@ -8,6 +8,11 @@ import { ScaleLinear, scaleLinear } from 'd3-scale';
 import { DataProvider } from '../data-provider';
 import { rgbToString } from '../utils/colors';
 
+/**
+ * Legacy class to draw ternary composition plots.
+ * 
+ * Use {@link BasePlot} for new projects
+ */
 class TernaryPlot {
 
   name: string;

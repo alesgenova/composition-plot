@@ -1,10 +1,44 @@
-import * as presets from './presets';
+import {
+  viridis,
+  plasma,
+  inferno,
+  magma,
+  cividis,
+  jet,
+  rainbow,
+  Greys,
+  Purples,
+  Blues,
+  Greens,
+  Oranges,
+  Reds,
+  gnuplot,
+  gnuplot2,
+  bwr,
+} from './presets';
 import { RGBColor } from '@colormap/core';
 import { isNil } from 'lodash-es';
 
-export { presets };
+export const presets = {
+  viridis,
+  plasma,
+  inferno,
+  magma,
+  cividis,
+  jet,
+  rainbow,
+  Greys,
+  Purples,
+  Blues,
+  Greens,
+  Oranges,
+  Reds,
+  gnuplot,
+  gnuplot2,
+  bwr,
+};
 
-export function* getLineColor(colors: RGBColor[]) {
+export function* getLineColor(colors: RGBColor[]): Generator<RGBColor> {
   let i = 0;
   while(true) {
     let colorIndex = i % colors.length;

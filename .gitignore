@@ -1,5 +1,7 @@
 dist/
 www/
+temp/
+docs/
 
 *~
 *.sw[mnpcod]

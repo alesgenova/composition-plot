@@ -1,9 +1,14 @@
 import { ISample, IAxis } from '../types';
 import { TernaryPlot } from './ternary';
-import { bwr } from '../utils/colors/presets';
+import { presets } from '../utils/colors';
 import { DataProvider } from '../data-provider';
 import { select } from 'd3-selection';
 
+/**
+ * Legacy class to draw quaternary composition plots.
+ * 
+ * Use {@link QuaternaryShellPlot} for new projects
+ */
 class QuaternaryPlot {
   svg: HTMLElement;
   dp: DataProvider;
@@ -98,7 +103,7 @@ class QuaternaryPlot {
 
   setColorMap(map: [number, number, number][], range: [number, number] = null) {
     if (!map) {
-      map = bwr;
+      map = presets.bwr;
     }
     if (!range) {
       range = this.dp.getScalarRange(this.selectedScalar);
